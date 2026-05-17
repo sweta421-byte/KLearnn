@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  PARENT
+  ADMIN
+}
+
+enum NoteVisibility {
+  PRIVATE
+  FRIENDS
+  PUBLIC
+}
+
+enum DoubtStatus {
+  PENDING
+  AI_RESPONDED
+  TEACHER_RESPONDED
+  RESOLVED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  password      String?
+  avatar        String?
+  phone         String?
+  grade         String?
+  role          UserRole @default(STUDENT)
+  isVerified    Boolean  @default(false)
+  credits       Int      @default(100)
+  focusStreak   Int      @default(0)
+  totalFocusMin Int      @default(0)
+  schoolId      String?
+  school        School?  @relation(fields: [schoolId], references: [id])
+  studyRoomMembers StudyRoomMember[]
+  notes            Note[]            @relation("NoteAuthor")
+  doubts           Doubt[]           @relation("DoubtAuthor")
+  refreshTokens    RefreshToken[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  users     User[]
+  classes   Class[]
+  createdAt DateTime @default(now())
+}
+
+model Class {
+  id       String @id @default(cuid())
+  name     String
+  grade    String
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model StudyRoom {
+  id           String  @id @default(cuid())
+  name         String
+  subject      String
+  goalMinutes  Int
+  isPublic     Boolean @default(false)
+  pomodoro     Boolean @default(true)
+  musicEnabled Boolean @default(true)
+  maxMembers   Int     @default(20)
+  createdBy    String
+  members  StudyRoomMember[]
+  sessions StudySession[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StudyRoomMember {
+  id        String   @id @default(cuid())
+  userId    String
+  roomId    String
+  joinedAt  DateTime @default(now())
+  isActive  Boolean  @default(true)
+  focusTime Int      @default(0)
+  user User      @relation(fields: [userId], references: [id])
+  room StudyRoom @relation(fields: [roomId], references: [id])
+  @@unique([userId, roomId])
+}
+
+model StudySession {
+  id          String    @id @default(cuid())
+  roomId      String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  totalMinutes Int      @default(0)
+  room StudyRoom @relation(fields: [roomId], references: [id])
+}
+
+model Note {
+  id         String         @id @default(cuid())
+  title      String
+  content    String
+  subject    String
+  grade      String
+  visibility NoteVisibility @default(PRIVATE)
+  price      Int            @default(0)
+  downloads  Int            @default(0)
+  likes      Int            @default(0)
+  aiSummary  String?
+  authorId String
+  author   User   @relation("NoteAuthor", fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Doubt {
+  id           String      @id @default(cuid())
+  question     String
+  imageUrl     String?
+  subject      String
+  grade        String
+  status       DoubtStatus @default(PENDING)
+  aiResponse   String?
+  teacherReply String?
+  authorId String
+  author   User   @relation("DoubtAuthor", fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Poll {
+  id        String   @id @default(cuid())
+  question  String
+  createdBy String
+  yesCount  Int      @default(0)
+  noCount   Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  message   String
+  createdBy String
+  createdAt DateTime @default(now())
+}
+
+model Concern {
+  id          String   @id @default(cuid())
+  message     String
+  category    String
+  isAnonymous Boolean  @default(true)
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  dueDate     DateTime
+  createdBy   String
+  grade       String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  submissions AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(cuid())
+  assignmentId String
+  userId       String
+  content      String
+  status       String     @default("SUBMITTED")
+  submittedAt  DateTime   @default(now())
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  grade       String
+  thumbnail   String?
+  createdBy   String
+  isPublic    Boolean  @default(true)
+  lessons     Lesson[]
+  enrollments CourseEnrollment[]
+  createdAt   DateTime @default(now())
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  videoUrl    String?
+  order       Int      @default(0)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model CourseEnrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  progress  Int      @default(0)
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+  @@unique([userId, courseId])
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  endDate     DateTime?
+  category    String   @default("general")
+  color       String   @default("#6C63FF")
+  userId      String
+  createdAt   DateTime @default(now())
+}
+
+model StudyLog {
+  id          String   @id @default(cuid())
+  userId      String
+  subject     String
+  duration    Int
+  notes       String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  url         String?
+  fileType    String
+  category    String
+  tags        String?
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+model LeaderboardEntry {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  userName    String
+  avatar      String?
+  points      Int      @default(0)
+  studyHours  Int      @default(0)
+  streak      Int      @default(0)
+  rank        Int      @default(0)
+  badge       String   @default("🌱 Beginner")
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+model ChatRoom {
+  id        String        @id @default(cuid())
+  name      String
+  isGroup   Boolean       @default(false)
+  createdBy String
+  members   ChatMember[]
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+}
+
+model ChatMember {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  userName  String
+  joinedAt  DateTime @default(now())
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+  @@unique([roomId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  userName  String
+  content   String
+  createdAt DateTime @default(now())
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+}
