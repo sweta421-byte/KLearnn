@@ -37,7 +37,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetchRooms()
-    const { io: ioClient } = await import('socket.io-client'); const s = ioClient(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/chat`)
+    import('socket.io-client').then(({ io: ioClient }) => { const s = ioClient(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/chat`)
     setSocket(s)
 
     s.on('newMessage', (msg: Message) => {
