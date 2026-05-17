@@ -10,3 +10,5 @@ allowBuilds:
   prisma: false
   sharp: false
   unrs-resolver: false
+  husky: false
+  '@nestjs/schematics': false
