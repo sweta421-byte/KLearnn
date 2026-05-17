@@ -1,5 +1,5 @@
-FROM node:20-alpine
-RUN apk add --no-cache openssl openssl-dev libc6-compat
+FROM node:20-bullseye-slim
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 RUN npm install -g @nestjs/cli
 COPY services/backend/package.json ./
