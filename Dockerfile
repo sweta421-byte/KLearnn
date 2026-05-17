@@ -5,6 +5,7 @@ RUN npm install -g @nestjs/cli
 COPY services/backend/package.json ./
 COPY services/backend/src/prisma ./src/prisma
 RUN npm install --ignore-scripts
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-1.1.x
 RUN ./node_modules/.bin/prisma generate --schema=./src/prisma/schema.prisma
 COPY services/backend/src ./src
 COPY services/backend/tsconfig*.json ./
