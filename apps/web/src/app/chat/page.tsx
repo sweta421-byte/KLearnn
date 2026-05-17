@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { io, Socket } from 'socket.io-client'
+type Socket = any
 
 interface Message {
   id: string
