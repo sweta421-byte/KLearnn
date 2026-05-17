@@ -1,10 +1,10 @@
 FROM node:20-alpine
 WORKDIR /app
-RUN npm install -g @nestjs/cli prisma
+RUN npm install -g @nestjs/cli
 COPY services/backend/package.json ./
 COPY services/backend/src/prisma ./src/prisma
 RUN npm install --ignore-scripts
-RUN prisma generate --schema=./src/prisma/schema.prisma
+RUN ./node_modules/.bin/prisma generate --schema=./src/prisma/schema.prisma
 COPY services/backend/src ./src
 COPY services/backend/tsconfig*.json ./
 RUN npm run build
