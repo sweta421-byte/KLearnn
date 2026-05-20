@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://k-learnn.vercel.app'],
+    origin: ['http://localhost:3000', 'https://k-learnn.vercel.app', 'http://localhost:8081', 'http://localhost:8082'],
     credentials: true,
   });
   app.setGlobalPrefix('api');
